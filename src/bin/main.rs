@@ -1,4 +1,4 @@
-use feistel::{utils::{generate_keys, xor_with_key}, Feistel, FeistelData};
+use feistel::{utils::xor_with_key, Feistel, FeistelData, FeistelKeys};
 use clap::Parser;
 use hex::decode;
 
@@ -16,7 +16,10 @@ fn main() {
         Ok(v) => v,
         Err(e) => panic!("Error, Invalid hex data: {}", e),
     };
-    let keys = generate_keys(3);
+    let keys = match FeistelKeys::from_file("keys.txt") {
+        Some(v) => v,
+        None => panic!("couldn't get keys at path ./keys.txt"),
+    };
     let feistel_input: FeistelData = FeistelData::new(data);
     let mut feistel: Feistel = Feistel::new(feistel_input.clone(), obfuscate, keys);
 
