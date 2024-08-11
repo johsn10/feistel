@@ -1,5 +1,6 @@
-use feistel::*;
+use feistel::{utils::{generate_keys, xor_with_key}, Feistel, FeistelData};
 use clap::Parser;
+use hex::decode;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -10,19 +11,24 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    let data = match u16::from_str_radix(&args.hex, 16) {
+
+    let data = match decode(args.hex) {
         Ok(v) => v,
-        Err(_) => panic!("Invalid hex data"),
+        Err(e) => panic!("Error, Invalid hex data: {}", e),
     };
+    let keys = generate_keys(3);
+    let feistel_input: FeistelData = FeistelData::new(data);
+    let mut feistel: Feistel = Feistel::new(feistel_input.clone(), obfuscate, keys);
 
-    let feistel_input: FeistelInput = FeistelInput::new(data);
-    let feistel: Feistel = Feistel::new(feistel_input, obfuscate);
-    let run1 = feistel.run();
-    let run2 = run1.run();
+    feistel.encrypt().unwrap();
+    let  run1 = feistel.clone();
 
-    println!("Original: {:04x}, Run 1: {:04x}, Run 2: {:04x}", *feistel_input, *run1.data, *run2.data);
+    feistel.decrypt().unwrap();
+    let run2 = feistel.clone();
+
+    println!("Original: {:02x?}, Run 1: {:02x?}, Run 2: {:02x?}", *feistel_input, *run1.data, *run2.data);
 }
 
-fn obfuscate(data: &u8) -> u8 {
-    data ^ 0x12
+fn obfuscate(data: &Vec<u8>, key: &Vec<u8>) -> Vec<u8> {
+    xor_with_key(&data, &key)
 }
