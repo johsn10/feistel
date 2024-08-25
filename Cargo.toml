@@ -5,7 +5,14 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.13", features = ["derive"] }
+serde = { version = "1.0.207", features = ["derive"]}
+
 derive-new = "0.6.0"
 hex = "0.4.3"
 rand = "0.8.5"
 rsa = "0.9.6"
+toml = "0.8.19"
+
+[[bin]]
+name = "main"
+path = "bin/main.rs"

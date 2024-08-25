@@ -1,9 +1,10 @@
 use crate::FeistelKeys;
-use std::{fs::File, io::Read, ops::{Deref, DerefMut}};
+use core::fmt;
+use std::{fs::File, io::Read, ops::{Deref, DerefMut}, path::PathBuf};
 use hex::decode;
 
 impl FeistelKeys {
-    pub fn from_file(path: &str) -> Option<Self> {
+    pub fn from_file(path: &PathBuf) -> Option<Self> {
         let mut contents = String::new();
         let mut keys: Self = Self::new(vec![]);
 
@@ -27,6 +28,32 @@ impl FeistelKeys {
         }
 
         Some(keys)
+    }
+
+    pub fn generate_keys(width: usize, height: usize) -> Self {
+        let mut keys = Self::new(vec![]);
+        for _ in 0..height {
+            let mut line: Vec<u8> = vec![];
+            for _ in 0..width {
+                let rand_num = rand::random::<u8>();
+                line.push(rand_num);
+            }
+            keys.push(line);
+        }
+        keys
+    }
+}
+
+impl fmt::Display for FeistelKeys {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+        for line in self.iter() {
+            for byte in line {
+                fmt.write_str(&format!("{:02x}", byte))?;
+            }
+            fmt.write_str("\n")?;
+        }
+
+        Ok(())
     }
 }
 
